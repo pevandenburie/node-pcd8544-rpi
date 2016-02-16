@@ -18,7 +18,7 @@
 	 LCD5 - D/C    P13 - GPIO2
 	 LCD6 - CS     P15 - GPIO3
 	 LCD7 - RST    P16 - GPIO4
-	 LCD8 - LED    P01 - 3.3V 
+	 LCD8 - LED    P01 - 3.3V
 
 ================================================================================
 This library is free software; you can redistribute it and/or
@@ -46,60 +46,60 @@ int _sclk = 0;
 int _dc = 2;
 int _rst = 4;
 int _cs = 3;
-  
-// lcd contrast 
+
+// lcd contrast
 //may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
-int contrast = 60;  
-  
+int contrast = 60;
+
 int main (void)
 {
   // print infos
   printf("Raspberry Pi PCD8544 sysinfo display\n");
   printf("========================================\n");
-  
+
   // check wiringPi setup
   if (wiringPiSetup() == -1)
   {
 	printf("wiringPi-Error\n");
     exit(1);
   }
-  
+
   // init and clear lcd
   LCDInit(_sclk, _din, _dc, _cs, _rst, contrast);
   LCDclear();
-  
+
   // show logo
   LCDshowLogo();
-  
+
   delay(2000);
-  
+
   for (;;)
   {
 	  // clear lcd
 	  LCDclear();
-	  
+
 	  // get system usage / info
 	  struct sysinfo sys_info;
 	  if(sysinfo(&sys_info) != 0)
 	  {
 		printf("sysinfo-Error\n");
 	  }
-	  
+
 	  // uptime
 	  char uptimeInfo[15];
 	  unsigned long uptime = sys_info.uptime / 60;
 	  sprintf(uptimeInfo, "Uptime %ld min.", uptime);
-	  
+
 	  // cpu info
-	  char cpuInfo[10]; 
+	  char cpuInfo[10];
 	  unsigned long avgCpuLoad = sys_info.loads[0] / 1000;
 	  sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
-	  
+
 	  // ram info
-	  char ramInfo[10]; 
+	  char ramInfo[10];
 	  unsigned long totalRam = sys_info.freeram / 1024 / 1024;
 	  sprintf(ramInfo, "RAM %ld MB", totalRam);
-	  
+
 	  // build screen
 	  //LCDdrawstring(0, 0, "Raspberry Pi:");
 	  LCDdrawstring(0, 0, "Sunfounder.com");
@@ -108,10 +108,10 @@ int main (void)
 	  LCDdrawstring(0, 20, cpuInfo);
 	  LCDdrawstring(0, 28, ramInfo);
 	  LCDdisplay();
-	  
+
 	  delay(1000);
   }
-  
+
     //for (;;){
   //  printf("LED On\n");
   //  digitalWrite(pin, 1);
