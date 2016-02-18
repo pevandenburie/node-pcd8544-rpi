@@ -1,5 +1,5 @@
 // test.js
-const lcd = require('./build/Release/pcd8544_rpi');
+const lcd = require('./build/Release/pcd8544-rpi');
 
 lcd.init();
 lcd.clear();
