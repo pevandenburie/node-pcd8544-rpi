@@ -855,7 +855,7 @@ void _delay_ms(uint32_t t)
 
 
 
-#include <string>
+//#include <string>
 #include <node.h>
 
 using v8::FunctionCallbackInfo;
@@ -908,6 +908,7 @@ void clear(const FunctionCallbackInfo<Value>& args) {
 }
 
 void drawstring(const FunctionCallbackInfo<Value>& args) {
+#if 0
   Isolate* isolate = args.GetIsolate();
 
   // Check the number of arguments passed.
@@ -939,13 +940,90 @@ void drawstring(const FunctionCallbackInfo<Value>& args) {
     args[1]->NumberValue(),
     s ? s : "");
     //(args.Length() > 0) ? *v8::String::Utf8Value(args[2]->ToString()) : "");
+#endif
 }
+
+void cpushow(const FunctionCallbackInfo<Value>& args)
+{
+// pin setup
+int _din = 1;
+int _sclk = 0;
+int _dc = 2;
+int _rst = 4;
+int _cs = 3;
+int contrast = 60;
+
+  // print infos
+  printf("Raspberry Pi PCD8544 sysinfo display\n");
+  printf("========================================\n");
+
+  // check wiringPi setup
+  if (wiringPiSetup() == -1)
+  {
+	printf("wiringPi-Error\n");
+//    exit(1);
+  }
+
+  // init and clear lcd
+  LCDInit(_sclk, _din, _dc, _cs, _rst, contrast);
+  LCDclear();
+
+  // show logo
+  LCDshowLogo();
+
+  delay(2000);
+
+  for (;;)
+  {
+	  // clear lcd
+	  LCDclear();
+#if 0
+	  // get system usage / info
+	  struct sysinfo sys_info;
+	  if(sysinfo(&sys_info) != 0)
+	  {
+		printf("sysinfo-Error\n");
+	  }
+
+	  // uptime
+	  char uptimeInfo[15];
+	  unsigned long uptime = sys_info.uptime / 60;
+	  sprintf(uptimeInfo, "Uptime %ld min.", uptime);
+
+	  // cpu info
+	  char cpuInfo[10];
+	  unsigned long avgCpuLoad = sys_info.loads[0] / 1000;
+	  sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
+
+	  // ram info
+	  char ramInfo[10];
+	  unsigned long totalRam = sys_info.freeram / 1024 / 1024;
+	  sprintf(ramInfo, "RAM %ld MB", totalRam);
+#endif
+
+char *uptimeInfo = "Uptime...";
+char *cpuInfo = "CPU...";
+char *ramInfo = "RAM...";
+	  // build screen
+	  //LCDdrawstring(0, 0, "Raspberry Pi:");
+	  LCDdrawstring(0, 0, "Sunfounder.com");
+	  LCDdrawline(0, 10, 83, 10, BLACK);
+	  LCDdrawstring(0, 12, uptimeInfo);
+	  LCDdrawstring(0, 20, cpuInfo);
+	  LCDdrawstring(0, 28, ramInfo);
+	  LCDdisplay();
+
+	  delay(1000);
+  }
+}
+
 
 void Initialize(Local<Object> exports) {
   NODE_SET_METHOD(exports, "init", init);
   NODE_SET_METHOD(exports, "setcontrast", setcontrast);
   NODE_SET_METHOD(exports, "clear", clear);
   NODE_SET_METHOD(exports, "drawstring", drawstring);
+  NODE_SET_METHOD(exports, "cpushow", cpushow);
 }
 
 NODE_MODULE(pcd8544_rpi, Initialize)
