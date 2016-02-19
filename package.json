@@ -1,5 +1,5 @@
 {
-  "name": "pcd8544-rpi",
+  "name": "pcd8544_rpi",
   "version": "0.1.0",
   "description": "PCD8544 for Raspberry-Pi",
   "main": "index.js",
