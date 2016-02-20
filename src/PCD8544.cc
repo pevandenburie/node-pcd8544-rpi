@@ -22,7 +22,7 @@
 	 LCD5 - D/C    P13 - GPIO2
 	 LCD6 - CS     P15 - GPIO3
 	 LCD7 - RST    P16 - GPIO4
-	 LCD8 - LED    P01 - 3.3V 
+	 LCD8 - LED    P01 - 3.3V
 
  References  :
  http://www.arduino.cc/playground/Code/PCD8544
@@ -350,7 +350,7 @@ const uint8_t pi_logo [] = {
 0x03, 0x03, 0x07, 0x07, 0x0F, 0x1F, 0x1F, 0x3F, 0x3B, 0x71, 0x60, 0x60, 0x60, 0x60, 0x60, 0x71,   // 0x01D0 (464) pixels
 0x3B, 0x1F, 0x0F, 0x0F, 0x0F, 0x07, 0x03, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x01E0 (480) pixels
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x01F0 (496) pixels
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
 // reduces how much is refreshed, which speeds it up!
@@ -456,37 +456,14 @@ void LCDdrawbitmap(uint8_t x, uint8_t y,const uint8_t *bitmap, uint8_t w, uint8_
 	updateBoundingBox(x, y, x+w, y+h);
 }
 
-void LCDdrawstring(uint8_t x, uint8_t y, char *c)
-{
-	cursor_x = x;
-	cursor_y = y;
-	while (*c)
-	{
-		LCDwrite(*c++);
-	}
-}
 
-void LCDdrawstring2(uint8_t x, uint8_t y, const char *c)
+void LCDdrawstring(uint8_t x, uint8_t y, const char *str)
 {
-        cursor_x = x;
-        cursor_y = y;
-	for (int i=0; c[i]!=0; i++)
-	{
-		LCDwrite(c[i]);
-        }
-}
-
-void LCDdrawstring_P(uint8_t x, uint8_t y, const char *str)
-{
-	cursor_x = x;
-	cursor_y = y;
-	while (1)
-	{
-		char c = (*str++);
-		if (! c)
-			return;
-		LCDwrite(c);
-	}
+  cursor_x = x;
+  cursor_y = y;
+	for (int i=0; str[i]!=0; i++) {
+		LCDwrite(str[i]);
+  }
 }
 
 void LCDdrawchar(uint8_t x, uint8_t y, char c)
@@ -830,7 +807,7 @@ void LCDclear(void) {
 	cursor_y = cursor_x = 0;
 }
 
-// bitbang serial shift out on select GPIO pin. Data rate is defined by CPU clk speed and CLKCONST_2. 
+// bitbang serial shift out on select GPIO pin. Data rate is defined by CPU clk speed and CLKCONST_2.
 // Calibrate these value for your need on target platform.
 void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
 {
@@ -878,7 +855,8 @@ using v8::String;
 using v8::Value;
 
 
-void init(const FunctionCallbackInfo<Value>& args) {
+void init(const FunctionCallbackInfo<Value>& args)
+{
   // Default pin setup
   int x_din = 1;
   int x_sclk = 0;
@@ -887,16 +865,16 @@ void init(const FunctionCallbackInfo<Value>& args) {
   int x_cs = 3;
 
   // lcd contrast
-  //may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
+  //may be need modify to fit your screen!  normal: 30- 90, default is:45 !!!maybe modify this value!
   int xcontrast = 60;
 
   // check wiringPi setup
-  if (wiringPiSetup() == -1)
-  {
-        printf("wiringPi-Error\n");
+  if (wiringPiSetup() == -1) {
+    printf("wiringPi-Error\n");
   }
 
   // init and clear lcd
+	// TODO: handle different input values for GPIOs
   LCDInit(x_sclk, x_din, x_dc, x_cs, x_rst, xcontrast);
   LCDclear();
 
@@ -907,7 +885,8 @@ void init(const FunctionCallbackInfo<Value>& args) {
   LCDclear();
 }
 
-void setcontrast(const FunctionCallbackInfo<Value>& args) {
+void setcontrast(const FunctionCallbackInfo<Value>& args)
+{
   Isolate* isolate = args.GetIsolate();
 
   // Check the number of arguments passed.
@@ -928,13 +907,12 @@ void setcontrast(const FunctionCallbackInfo<Value>& args) {
   LCDsetContrast((uint8_t)args[0]->NumberValue());
 }
 
-void clear(const FunctionCallbackInfo<Value>& args) {
+void clear(const FunctionCallbackInfo<Value>& args)
+{
   LCDclear();
 }
 
-
-
-#if 0
+#if 0 // This is an unlucky try with NAN
 NAN_METHOD(drawstring)
 {
   NanScope();
@@ -952,22 +930,8 @@ NAN_METHOD(drawstring)
 }
 #endif
 
-
-/*char *getstr(v8::Local<v8::Value> value, const char *fallback = "") {
-    if (value->IsString()) {
-        v8::String::AsciiValue string(value);
-        char *str = (char *) malloc(string.length() + 1);
-        strcpy(str, *string);
-        return str;
-    }
-    char *str = (char *) malloc(strlen(fallback) + 1);
-    strcpy(str, fallback);
-    return str;
-}*/
-
-
-void drawstring(const FunctionCallbackInfo<Value>& args) {
-
+void drawstring(const FunctionCallbackInfo<Value>& args)
+{
   Isolate* isolate = args.GetIsolate();
 
   // Check the number of arguments passed.
@@ -985,113 +949,26 @@ void drawstring(const FunctionCallbackInfo<Value>& args) {
     return;
   }
 
-#if 0
-// get the param
-    v8::String::Utf8Value param1(args[2]->ToString());
-
-    // convert it to string
-    std::string foo = std::string(*param1); 
-
-  const char *s = foo.c_str();
-#endif
-
-
-  //printf("%f %f %s ", args[0]->NumberValue(), args[1]->NumberValue(), *v8::String::Utf8Value(args[2]->ToString()));
-
   v8::String::Utf8Value arg2(args[2]);
   const char* s = *arg2;
 
-  LCDdrawstring2(
+  LCDdrawstring(
     args[0]->NumberValue(),
     args[1]->NumberValue(),
-    s ? s : "NA...");
-
-  LCDdisplay();
+    s ? s : "");
 }
 
-void cpushow(const FunctionCallbackInfo<Value>& args)
+void display(const FunctionCallbackInfo<Value>& args)
 {
-// pin setup
-int _din = 1;
-int _sclk = 0;
-int _dc = 2;
-int _rst = 4;
-int _cs = 3;
-int contrast = 60;
-
-  // print infos
-  printf("Raspberry Pi PCD8544 sysinfo display\n");
-  printf("========================================\n");
-
-  // check wiringPi setup
-  if (wiringPiSetup() == -1)
-  {
-	printf("wiringPi-Error\n");
-//    exit(1);
-  }
-
-  // init and clear lcd
-  LCDInit(_sclk, _din, _dc, _cs, _rst, contrast);
-  LCDclear();
-
-  // show logo
-  LCDshowLogo();
-
-  delay(2000);
-
-  for (;;)
-  {
-	  // clear lcd
-	  LCDclear();
-#if 0
-	  // get system usage / info
-	  struct sysinfo sys_info;
-	  if(sysinfo(&sys_info) != 0)
-	  {
-		printf("sysinfo-Error\n");
-	  }
-
-	  // uptime
-	  char uptimeInfo[15];
-	  unsigned long uptime = sys_info.uptime / 60;
-	  sprintf(uptimeInfo, "Uptime %ld min.", uptime);
-
-	  // cpu info
-	  char cpuInfo[10];
-	  unsigned long avgCpuLoad = sys_info.loads[0] / 1000;
-	  sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
-
-	  // ram info
-	  char ramInfo[10];
-	  unsigned long totalRam = sys_info.freeram / 1024 / 1024;
-	  sprintf(ramInfo, "RAM %ld MB", totalRam);
-#endif
-
-char *uptimeInfo = "Uptime...";
-char *cpuInfo = "CPU...";
-char *ramInfo = "RAM...";
-	  // build screen
-	  //LCDdrawstring(0, 0, "Raspberry Pi:");
-	  LCDdrawstring(0, 0, "Sunfounder.com");
-	  LCDdrawline(0, 10, 83, 10, BLACK);
-	  LCDdrawstring(0, 12, uptimeInfo);
-	  LCDdrawstring(0, 20, cpuInfo);
-	  LCDdrawstring(0, 28, ramInfo);
-	  LCDdisplay();
-
-	  delay(1000);
-  }
+	LCDdisplay();
 }
-
 
 void Initialize(Local<Object> exports) {
   NODE_SET_METHOD(exports, "init", init);
   NODE_SET_METHOD(exports, "setcontrast", setcontrast);
   NODE_SET_METHOD(exports, "clear", clear);
   NODE_SET_METHOD(exports, "drawstring", drawstring);
-  NODE_SET_METHOD(exports, "cpushow", cpushow);
+  NODE_SET_METHOD(exports, "display", display);
 }
 
 NODE_MODULE(pcd8544_rpi, Initialize)
-
-

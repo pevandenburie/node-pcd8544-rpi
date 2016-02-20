@@ -1,7 +1,8 @@
 {
   "name": "pcd8544_rpi",
   "version": "0.1.0",
-  "description": "PCD8544 for Raspberry-Pi",
+  "description": "Node.js binding of PCD8544 LCD screen driver for Raspberry-Pi",
+  "author": "Paul-Emmanuel Vandenburie <pevandenburie@yahoo.fr> (https://github.com/pevandenburie)",
   "main": "index.js",
   "gypfile": true,
   "repository": {
