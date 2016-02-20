@@ -4,6 +4,10 @@
   "description": "PCD8544 for Raspberry-Pi",
   "main": "index.js",
   "gypfile": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pevandenburie/PCD8544.git"
+  },
   "scripts": {
     "install": "node-gyp rebuild"
   },

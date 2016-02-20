@@ -466,6 +466,16 @@ void LCDdrawstring(uint8_t x, uint8_t y, char *c)
 	}
 }
 
+void LCDdrawstring2(uint8_t x, uint8_t y, const char *c)
+{
+        cursor_x = x;
+        cursor_y = y;
+	for (int i=0; c[i]!=0; i++)
+	{
+		LCDwrite(c[i]);
+        }
+}
+
 void LCDdrawstring_P(uint8_t x, uint8_t y, const char *str)
 {
 	cursor_x = x;
@@ -857,6 +867,7 @@ void _delay_ms(uint32_t t)
 
 //#include <string>
 #include <node.h>
+//#include "nan.h"
 
 using v8::FunctionCallbackInfo;
 using v8::Exception;
@@ -866,20 +877,34 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-// pin setup
-int x_din = 1;
-int x_sclk = 0;
-int x_dc = 2;
-int x_rst = 4;
-int x_cs = 3;
-
-// lcd contrast
-//may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
-int xcontrast = 60;
-
 
 void init(const FunctionCallbackInfo<Value>& args) {
+  // Default pin setup
+  int x_din = 1;
+  int x_sclk = 0;
+  int x_dc = 2;
+  int x_rst = 4;
+  int x_cs = 3;
+
+  // lcd contrast
+  //may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
+  int xcontrast = 60;
+
+  // check wiringPi setup
+  if (wiringPiSetup() == -1)
+  {
+        printf("wiringPi-Error\n");
+  }
+
+  // init and clear lcd
   LCDInit(x_sclk, x_din, x_dc, x_cs, x_rst, xcontrast);
+  LCDclear();
+
+  // show logo
+  LCDshowLogo();
+
+  delay(2000);
+  LCDclear();
 }
 
 void setcontrast(const FunctionCallbackInfo<Value>& args) {
@@ -907,8 +932,42 @@ void clear(const FunctionCallbackInfo<Value>& args) {
   LCDclear();
 }
 
-void drawstring(const FunctionCallbackInfo<Value>& args) {
+
+
 #if 0
+NAN_METHOD(drawstring)
+{
+  NanScope();
+  static NanAsciiString *str;
+  str = new NanAsciiString(arg[2]);
+  NanReturnUndefined();
+
+  LCDdrawstring_P(args[0]->NumberValue(),
+    args[1]->NumberValue(),
+    str ? str : "");
+
+  LCDdisplay();
+
+  delay(100000);
+}
+#endif
+
+
+/*char *getstr(v8::Local<v8::Value> value, const char *fallback = "") {
+    if (value->IsString()) {
+        v8::String::AsciiValue string(value);
+        char *str = (char *) malloc(string.length() + 1);
+        strcpy(str, *string);
+        return str;
+    }
+    char *str = (char *) malloc(strlen(fallback) + 1);
+    strcpy(str, fallback);
+    return str;
+}*/
+
+
+void drawstring(const FunctionCallbackInfo<Value>& args) {
+
   Isolate* isolate = args.GetIsolate();
 
   // Check the number of arguments passed.
@@ -920,14 +979,13 @@ void drawstring(const FunctionCallbackInfo<Value>& args) {
   }
 
   // Check the argument types
-  if (1) {
-  //if (!args[0]->IsNumber() || args[1]->IsNumber() || args[2]->IsString()) {
+  if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsString()) {
     isolate->ThrowException(Exception::TypeError(
         String::NewFromUtf8(isolate, "Wrong arguments")));
     return;
   }
 
-
+#if 0
 // get the param
     v8::String::Utf8Value param1(args[2]->ToString());
 
@@ -935,12 +993,20 @@ void drawstring(const FunctionCallbackInfo<Value>& args) {
     std::string foo = std::string(*param1); 
 
   const char *s = foo.c_str();
-
-  LCDdrawstring_P(args[0]->NumberValue(),
-    args[1]->NumberValue(),
-    s ? s : "");
-    //(args.Length() > 0) ? *v8::String::Utf8Value(args[2]->ToString()) : "");
 #endif
+
+
+  //printf("%f %f %s ", args[0]->NumberValue(), args[1]->NumberValue(), *v8::String::Utf8Value(args[2]->ToString()));
+
+  v8::String::Utf8Value arg2(args[2]);
+  const char* s = *arg2;
+
+  LCDdrawstring2(
+    args[0]->NumberValue(),
+    args[1]->NumberValue(),
+    s ? s : "NA...");
+
+  LCDdisplay();
 }
 
 void cpushow(const FunctionCallbackInfo<Value>& args)
