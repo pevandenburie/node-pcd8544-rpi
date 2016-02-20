@@ -22,7 +22,7 @@
 	 LCD5 - D/C    P13 - GPIO2
 	 LCD6 - CS     P15 - GPIO3
 	 LCD7 - RST    P16 - GPIO4
-	 LCD8 - LED    P01 - 3.3V 
+	 LCD8 - LED    P01 - 3.3V
 
  References  :
  http://www.arduino.cc/playground/Code/PCD8544
@@ -350,7 +350,7 @@ const uint8_t pi_logo [] = {
 0x03, 0x03, 0x07, 0x07, 0x0F, 0x1F, 0x1F, 0x3F, 0x3B, 0x71, 0x60, 0x60, 0x60, 0x60, 0x60, 0x71,   // 0x01D0 (464) pixels
 0x3B, 0x1F, 0x0F, 0x0F, 0x0F, 0x07, 0x03, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x01E0 (480) pixels
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // 0x01F0 (496) pixels
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
 // reduces how much is refreshed, which speeds it up!
@@ -456,27 +456,14 @@ void LCDdrawbitmap(uint8_t x, uint8_t y,const uint8_t *bitmap, uint8_t w, uint8_
 	updateBoundingBox(x, y, x+w, y+h);
 }
 
-void LCDdrawstring(uint8_t x, uint8_t y, char *c)
-{
-	cursor_x = x;
-	cursor_y = y;
-	while (*c)
-	{
-		LCDwrite(*c++);
-	}
-}
 
-void LCDdrawstring_P(uint8_t x, uint8_t y, const char *str)
+void LCDdrawstring(uint8_t x, uint8_t y, const char *str)
 {
-	cursor_x = x;
-	cursor_y = y;
-	while (1)
-	{
-		char c = (*str++);
-		if (! c)
-			return;
-		LCDwrite(c);
-	}
+  cursor_x = x;
+  cursor_y = y;
+	for (int i=0; str[i]!=0; i++) {
+		LCDwrite(str[i]);
+  }
 }
 
 void LCDdrawchar(uint8_t x, uint8_t y, char c)
@@ -820,7 +807,7 @@ void LCDclear(void) {
 	cursor_y = cursor_x = 0;
 }
 
-// bitbang serial shift out on select GPIO pin. Data rate is defined by CPU clk speed and CLKCONST_2. 
+// bitbang serial shift out on select GPIO pin. Data rate is defined by CPU clk speed and CLKCONST_2.
 // Calibrate these value for your need on target platform.
 void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
 {
@@ -851,3 +838,137 @@ void _delay_ms(uint32_t t)
 		t--;
 	}
 }
+
+
+
+
+//#include <string>
+#include <node.h>
+//#include "nan.h"
+
+using v8::FunctionCallbackInfo;
+using v8::Exception;
+using v8::Isolate;
+using v8::Local;
+using v8::Object;
+using v8::String;
+using v8::Value;
+
+
+void init(const FunctionCallbackInfo<Value>& args)
+{
+  // Default pin setup
+  int x_din = 1;
+  int x_sclk = 0;
+  int x_dc = 2;
+  int x_rst = 4;
+  int x_cs = 3;
+
+  // lcd contrast
+  //may be need modify to fit your screen!  normal: 30- 90, default is:45 !!!maybe modify this value!
+  int xcontrast = 60;
+
+  // check wiringPi setup
+  if (wiringPiSetup() == -1) {
+    printf("wiringPi-Error\n");
+  }
+
+  // init and clear lcd
+	// TODO: handle different input values for GPIOs
+  LCDInit(x_sclk, x_din, x_dc, x_cs, x_rst, xcontrast);
+  LCDclear();
+
+  // show logo
+  LCDshowLogo();
+
+  delay(2000);
+  LCDclear();
+}
+
+void setcontrast(const FunctionCallbackInfo<Value>& args)
+{
+  Isolate* isolate = args.GetIsolate();
+
+  // Check the number of arguments passed.
+  if (args.Length() < 1) {
+    // Throw an Error that is passed back to JavaScript
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate, "Wrong number of arguments")));
+    return;
+  }
+
+  // Check the argument types
+  if (!args[0]->IsNumber()) {
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate, "Wrong arguments")));
+    return;
+  }
+
+  LCDsetContrast((uint8_t)args[0]->NumberValue());
+}
+
+void clear(const FunctionCallbackInfo<Value>& args)
+{
+  LCDclear();
+}
+
+#if 0 // This is an unlucky try with NAN
+NAN_METHOD(drawstring)
+{
+  NanScope();
+  static NanAsciiString *str;
+  str = new NanAsciiString(arg[2]);
+  NanReturnUndefined();
+
+  LCDdrawstring_P(args[0]->NumberValue(),
+    args[1]->NumberValue(),
+    str ? str : "");
+
+  LCDdisplay();
+
+  delay(100000);
+}
+#endif
+
+void drawstring(const FunctionCallbackInfo<Value>& args)
+{
+  Isolate* isolate = args.GetIsolate();
+
+  // Check the number of arguments passed.
+  if (args.Length() < 3) {
+    // Throw an Error that is passed back to JavaScript
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate, "Wrong number of arguments")));
+    return;
+  }
+
+  // Check the argument types
+  if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsString()) {
+    isolate->ThrowException(Exception::TypeError(
+        String::NewFromUtf8(isolate, "Wrong arguments")));
+    return;
+  }
+
+  v8::String::Utf8Value arg2(args[2]);
+  const char* s = *arg2;
+
+  LCDdrawstring(
+    args[0]->NumberValue(),
+    args[1]->NumberValue(),
+    s ? s : "");
+}
+
+void display(const FunctionCallbackInfo<Value>& args)
+{
+	LCDdisplay();
+}
+
+void Initialize(Local<Object> exports) {
+  NODE_SET_METHOD(exports, "init", init);
+  NODE_SET_METHOD(exports, "setcontrast", setcontrast);
+  NODE_SET_METHOD(exports, "clear", clear);
+  NODE_SET_METHOD(exports, "drawstring", drawstring);
+  NODE_SET_METHOD(exports, "display", display);
+}
+
+NODE_MODULE(pcd8544_rpi, Initialize)
