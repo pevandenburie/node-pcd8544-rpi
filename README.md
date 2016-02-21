@@ -6,20 +6,25 @@ Node.js binding of PCD8544 LCD screen driver for Raspberry-Pi.
 Installation
 ------------
 
-1. Install wiringPi driver
+**Install wiringPi driver**
 
-Makes use of WiringPI-library of Gordon Henderson (https://projects.drogon.net/raspberry-pi/wiringpi/).
-
-
-2. Clone this repository
+This package makes use of WiringPI-library of Gordon Henderson (https://projects.drogon.net/raspberry-pi/wiringpi/).
 
 ``` bash
-$ git clone https://github.com/pevandenburie/PCD8544.git
+$ cd /home
+$ git clone git://git.drogon.net/wiringPi
+$ cd wiringPi
+$ sudo ./build
+```
+
+**Install the package from the repository**
+
+``` bash
+$ npm install https://github.com/pevandenburie/node-pcd8544-rpi.git
 ```
 
 
-3. Install the package
+Example
+-------
 
-``` bash
-$ npm install
-```
+<TODO>
