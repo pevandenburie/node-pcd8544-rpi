@@ -3,6 +3,19 @@ Node-PCD8544-RPI
 
 Node.js binding of PCD8544 LCD screen driver for Raspberry-Pi.
 
+
+Hardware
+--------
+
+I used the PCD8544 from www.sunfounder.com, designed to be mounted on the GPIO ports of a Raspberry-Pi:
+
+![](/images/pcd8544_mounted.png)
+
+This Node.js module uses the predefined pin layout, and is not configurable for now:
+
+![](/images/pcd8544_layout.png)
+
+
 Installation
 ------------
 
