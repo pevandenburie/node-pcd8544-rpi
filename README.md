@@ -27,4 +27,21 @@ $ npm install https://github.com/pevandenburie/node-pcd8544-rpi.git
 Example
 -------
 
-<TODO>
+Create a `test_lcd.js` file and edit it:
+
+``` javascript
+const lcd = require('pcd8544_rpi');
+
+lcd.init();
+lcd.clear();
+lcd.drawstring(0, 0, "Hello Raspi!");
+lcd.display();
+```
+
+Then run it in **sudo** mode, as it is required to control GPIOs on Raspberry-Pi:
+
+``` bash
+$ sudo node ./test_lcd.js
+```
+
+Look at your screen: the first line should be filled with "Hello Raspi!".
